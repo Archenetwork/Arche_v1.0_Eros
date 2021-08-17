@@ -78,6 +78,9 @@ abstract contract D_Swap_Main
     function Triger_Withdraw_Tail(address swap ,address user ,uint256 status)virtual  public ;
     function Triger_Claim_For_Delivery(address swap ,address user) virtual  public ;
     function Triger_Remaining_Supply(address swap ,uint256 head_amount,uint256 tail_amount)virtual public;
+    function Triger_Token_Info(address swap ,address user ,address head ,uint256 head_decimal,uint256 head_name ,address tail ,uint256 tail_decimal,uint256 tail_name,address reward ,uint256 reward_decimal,uint256 reward_name )virtual  public ;
+   
+  
 }
 
 
@@ -195,6 +198,23 @@ contract D_Swap is Owned {
         for (uint i = 0; i < _bb.length; i++) bret[k++] = _bb[i];
         return string(ret);
    }  
+   function Str_To_Uint(string memory _str) private returns(uint256)
+   {
+       bytes memory str_bytes = bytes(_str);
+
+        uint256 res = 0;
+        for (uint i = 0; i < str_bytes.length; i++)
+        {
+            res=res+(uint8) (str_bytes[i]);
+            res=res*256;
+            if(i>=20)
+            {
+                break;
+            }
+        }
+
+        return (res);
+   }
     function Set_Initializing_Params(uint256 total_amount_head ,uint256 total_amount_tail ,uint256 future_block_offset,string memory slogan)public  onlyOwner
     {
         require(total_amount_head>0 && total_amount_tail >0 ,"YOU CAN NOT EXCHANGE ETHER");
@@ -210,6 +230,15 @@ contract D_Swap is Owned {
         uint256 price=total_amount_head.mul(1e18);
         price=price.div(total_amount_tail);
         D_Swap_Main(m_DSwap_Main_Address).Triger_Token_Price( address(this) , msg.sender,price );
+        
+        D_Swap_Main(m_DSwap_Main_Address).Triger_Token_Info(
+            address(this) , msg.sender,
+            m_Token_Head,ERC20_Prop_Interface(m_Token_Head).decimals(),Str_To_Uint(ERC20_Prop_Interface(m_Token_Head).symbol()),
+            m_Token_Tail,ERC20_Prop_Interface(m_Token_Tail).decimals(),Str_To_Uint(ERC20_Prop_Interface(m_Token_Tail).symbol()),
+            m_Token_Reward,ERC20_Prop_Interface(m_Token_Reward).decimals(),Str_To_Uint(ERC20_Prop_Interface(m_Token_Reward).symbol())
+            );
+        
+        
     }
     
     function Permit_User(address[] memory users)public onlyOwner
@@ -419,7 +448,7 @@ contract D_Swap is Owned {
         {
             
             uint256 amount_back=0;//
-            amount_back=m_Total_Amount_Head- m_Amount_Head_Swapped;
+            amount_back=m_Total_Amount_Head.sub(m_Amount_Head_Swapped);
             
             if(amount_back>=1)
             {
@@ -431,7 +460,7 @@ contract D_Swap is Owned {
         {
             
             uint256 reward_back=0;//
-            reward_back= m_Amount_Reward- m_Amount_Reward_Swapped;
+            reward_back= m_Amount_Reward.sub( m_Amount_Reward_Swapped);
             if(reward_back>=1)
             {
                 ERC20Interface(m_Token_Reward).transfer( msg.sender,reward_back);
@@ -451,7 +480,7 @@ contract D_Swap is Owned {
         
         uint256 e_amount=t_balance.sub(t_balance_old);
         
-        require(e_amount>=value,"?TOKEN LOST");
+        require(e_amount>=value,"TOKEN LOST,REBASING TOKEN IS NOT SUPPORTED");
         
     }
     fallback() external payable {}

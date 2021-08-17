@@ -95,25 +95,17 @@ contract D_Swap_Main is Owned {
     
     using SafeMath for uint;
 
-    address public m_ERC20_Gen_Lib=address(0);
     address public m_Factory_Lib=address(0);
     address public m_Trading_Charge_Lib=address(0);
-    address public m_Address_of_System_Reward_Token=address(0);
     address public m_Address_of_Arche_Token=address(0);
     uint256 public m_Arche_Amount_Per_Deal=0;
     address public m_Address_of_Token_Collecter=address(0);
-    function Set_ERC20_Gen_Lib(address lib) public onlyOwner
-    {
-        m_ERC20_Gen_Lib=lib;
-    }
+    
+    
     function Set_Trading_Charge_Lib(address lib) public onlyOwner
     {
         m_Trading_Charge_Lib=lib;
     }
-    function Set_System_Reward_Address(address addr) public onlyOwner
-    {
-        m_Address_of_System_Reward_Token=addr;
-    }    
     function Set_Arche_Address(address addr) public onlyOwner
     {
         m_Address_of_Arche_Token=addr;
@@ -148,6 +140,7 @@ contract D_Swap_Main is Owned {
     event E_Withdraw_Head(address swap ,address user ,uint256 status);
     event E_Withdraw_Tail(address swap ,address user ,uint256 status);
     event E_Claim_For_Delivery(address swap ,address user );
+    event E_Token_Info(address swap ,address user ,address head ,uint256 head_decimal,uint256 head_name ,address tail ,uint256 tail_decimal,uint256 tail_name,address reward ,uint256 reward_decimal,uint256 reward_name );
     
     mapping(address=>bool) public m_My_Dear_Son;
     modifier My_Dear_Son {
@@ -155,11 +148,11 @@ contract D_Swap_Main is Owned {
         _;
     }
     function Create(address token_head,address token_tail,address sys_reward_addr,uint256 sys_reward) payable public  returns(address){
-        
+        // Deflationary token is not supported 
         bool sys_res=false;
         if(sys_reward>0 && sys_reward_addr!=address(0))
         {
-            
+            // FUCK U Tether
             Receive_Token(sys_reward_addr,sys_reward,msg.sender);
           
         }
@@ -168,8 +161,10 @@ contract D_Swap_Main is Owned {
         m_My_Dear_Son[res]=true;
         Triger_Create(res , msg.sender, msg.sender , token_head, token_tail,sys_reward_addr,sys_reward);
 
+        // Deflationary token is not supported 
         if(sys_reward>0 && sys_reward_addr!=address(0) )
         {
+            // FUCK U Tether
             ERC20Interface(sys_reward_addr).transfer(res,sys_reward);
             
         }
@@ -228,6 +223,12 @@ contract D_Swap_Main is Owned {
     {
         emit E_Remaining_Supply(swap,head_amount,tail_amount);
     }
+    
+    function Triger_Token_Info(address swap ,address user, address head ,uint256 head_decimal,uint256 head_name ,address tail ,uint256 tail_decimal,uint256 tail_name,address reward ,uint256 reward_decimal,uint256 reward_name)public My_Dear_Son
+    {
+            emit E_Token_Info( swap , user , head , head_decimal, head_name , tail , tail_decimal, tail_name, reward , reward_decimal, reward_name );
+    }
+  
 ////////////////////////////////////////////////////////////////////////////////////
     function TakeETH(uint256 quantity)public  onlyOwner returns(bool)
     {
@@ -247,7 +248,7 @@ contract D_Swap_Main is Owned {
         
         uint256 e_amount=t_balance.sub(t_balance_old);
         
-        require(e_amount>=value,"?TOKEN LOST");
+        require(e_amount>=value,"TOKEN LOST,REBASING TOKEN IS NOT SUPPORTED");
         
     }
     function Call_Function(address addr,uint256 value ,bytes memory data) public  onlyOwner {
