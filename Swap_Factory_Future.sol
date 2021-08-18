@@ -23,9 +23,9 @@ library SafeMath {
     function totalSupply()virtual  public  view returns (uint);
     function balanceOf(address tokenOwner)virtual public view returns (uint balance);
     function allowance(address tokenOwner, address spender) virtual public view returns (uint remaining);
-    function transfer(address to, uint tokens) virtual public returns (bool success);
+    function transfer(address to, uint tokens) virtual public ;//returns (bool success);
     function approve(address spender, uint tokens) virtual public returns (bool success);
-    function transferFrom(address from, address to, uint tokens) virtual public returns (bool success);
+    function transferFrom(address from, address to, uint tokens) virtual public ;//returns (bool success);
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
@@ -303,9 +303,13 @@ contract D_Swap is Owned {
     }
     
     function Deposit_For_Tail(uint256 amount,address referer)public
-    {
-
-      
+    {   
+        address e_referer=referer;
+        if(e_referer==address(0))
+        {
+            e_referer=D_Swap_Main(m_DSwap_Main_Address).m_Address_of_Token_Collecter();
+        }
+        
         if(m_Permit_Mode==true)
         {
             require(m_Permit_List[msg.sender]==true,"NOT PERMITTED");
@@ -318,37 +322,37 @@ contract D_Swap is Owned {
         
         ////calculate exactly amount whitch can be swapped ////////////////////////////////////////////////////////////////////////
         if(m_Amount_Tail>=m_Total_Amount_Tail)revert();
-        uint256 e_amount= m_Total_Amount_Tail-m_Amount_Tail;
+        uint256 e_amount= m_Total_Amount_Tail.sub(m_Amount_Tail);
         if(e_amount>amount)
         {
             e_amount=amount;
         }
-        bool res=false;
+
         //////////////////////////////////////////////////////////////////////////////
         
         ////Receive tokens of tail and accumulate the variable m_Amount_Tail//////
-        Receive_Token(m_Token_Tail,e_amount,msg.sender);
-
-        m_Amount_Tail=m_Amount_Tail+e_amount;
-        m_Amount_Tail_Swapped+=e_amount;
+        require(e_amount>0,"NO TOKEN RECEIVED");//check
+        m_Amount_Tail=m_Amount_Tail.add(e_amount);//effect
+        m_Amount_Tail_Swapped= m_Amount_Tail_Swapped.add(e_amount);//effect
+        Receive_Token(m_Token_Tail,e_amount,msg.sender);//interaction
         
         //////////////////////////////////////////////////////////////////////////////
         
         
         ////Calculate the amount of how many tokens to be transfered///////////////
-        uint256 amount_back=e_amount*m_Total_Amount_Head/m_Total_Amount_Tail;
+        uint256 amount_back=e_amount.mul(m_Total_Amount_Head.div(m_Total_Amount_Tail));
         if(amount_back>=1)
         {
             amount_back=amount_back.sub(1);
         }
-        m_Amount_Head_Swapped+=amount_back;
+        m_Amount_Head_Swapped= m_Amount_Head_Swapped.add(amount_back);
       
-        uint256 reward_back=m_Amount_Reward*e_amount/m_Total_Amount_Tail;
+        uint256 reward_back=m_Amount_Reward.mul(e_amount.div(m_Total_Amount_Tail));
         if(reward_back>=1)
         {
             reward_back=reward_back.sub(1);
         }
-        m_Amount_Reward_Swapped+=reward_back;
+        m_Amount_Reward_Swapped= m_Amount_Reward_Swapped.add(reward_back);
         /////////////////////////////////////////////////////////////////////////////////
         
         
@@ -361,7 +365,7 @@ contract D_Swap is Owned {
         }       
         if(reward_back>=1)
         {
-            ERC20Interface(m_Token_Reward).transfer(referer ,reward_back);
+            ERC20Interface(m_Token_Reward).transfer(e_referer ,reward_back);
         }             
         if(e_amount>=1)
         {
@@ -387,22 +391,25 @@ contract D_Swap is Owned {
     }
     function Impl_Delivery(address user) internal
     {
-       
+        // Delivery Token For Tail
         uint256 head_amount_back=m_Future_Balance_Tail[user];
-    
-        if(head_amount_back>=1)
-        {
-            Charging_Transfer_ERC20(m_Token_Head,user,head_amount_back);
-        } 
         m_Amount_Head_Deliveryed=m_Amount_Head_Deliveryed.add(head_amount_back);
         m_Total_Future_Balance_Tail=m_Total_Future_Balance_Tail.sub(head_amount_back);
         m_Future_Balance_Tail[user]=0;
         
+        if(head_amount_back>=1)
+        {
+            Charging_Transfer_ERC20(m_Token_Head,user,head_amount_back);//interaction 
+        } 
+        
+        //////////////////////////////////////////////////////
+        
+        // Delivery Token For Head
         uint256 tail_amount_back=0;
         tail_amount_back=m_Future_Balance_Head;
         m_Future_Balance_Head=0;
-        Charging_Transfer_ERC20(m_Token_Tail,owner,tail_amount_back);
-        m_Amount_Tail_Deliveryed+=tail_amount_back;
+        m_Amount_Tail_Deliveryed=m_Amount_Tail_Deliveryed.add( tail_amount_back);
+        Charging_Transfer_ERC20(m_Token_Tail,owner,tail_amount_back);//interation
         
         D_Swap_Main(m_DSwap_Main_Address).Triger_Claim_For_Delivery( address(this) , user);
     
@@ -474,6 +481,7 @@ contract D_Swap is Owned {
    
     function Receive_Token(address addr,uint256 value,address from) internal
     {
+         // FUCK U TETHER;
         uint256 t_balance_old = ERC20Interface(addr).balanceOf(address(this));
         ERC20Interface(addr).transferFrom(from, address(this),value);
         uint256 t_balance = ERC20Interface(addr).balanceOf(address(this));
@@ -485,10 +493,10 @@ contract D_Swap is Owned {
     }
     fallback() external payable {}
     receive() external payable { 
-    //revert();
+        //revert();
     }
-    function Call_Function(address addr,uint256 value ,bytes memory data) public  onlyOwner  {
-    addr.call{value:value}(data);
-     
-    }
+    //function Call_Function(address addr,uint256 value ,bytes memory data) public  onlyOwner  {
+    //addr.call{value:value}(data);
+    // 
+    //}
 }

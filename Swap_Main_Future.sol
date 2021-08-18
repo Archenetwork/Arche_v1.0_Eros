@@ -22,9 +22,9 @@ library SafeMath {
     function totalSupply()virtual  public  view returns (uint);
     function balanceOf(address tokenOwner)virtual public view returns (uint balance);
     function allowance(address tokenOwner, address spender) virtual public view returns (uint remaining);
-    function transfer(address to, uint tokens) virtual public returns (bool success);
+    function transfer(address to, uint tokens) virtual public ;//returns (bool success);
     function approve(address spender, uint tokens) virtual public returns (bool success);
-    function transferFrom(address from, address to, uint tokens) virtual public returns (bool success);
+    function transferFrom(address from, address to, uint tokens) virtual public ;//returns (bool success);
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
@@ -242,6 +242,8 @@ contract D_Swap_Main is Owned {
     }
     function Receive_Token(address addr,uint256 value,address from) internal
     {
+        
+        // FUCK U TETHER;
         uint256 t_balance_old = ERC20Interface(addr).balanceOf(address(this));
         ERC20Interface(addr).transferFrom(from, address(this),value);
         uint256 t_balance = ERC20Interface(addr).balanceOf(address(this));
@@ -258,3 +260,4 @@ contract D_Swap_Main is Owned {
            ERC20Interface(token_address).transfer(msg.sender,token_amount);
     }
 }
+
