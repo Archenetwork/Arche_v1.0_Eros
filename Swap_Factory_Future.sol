@@ -275,13 +275,13 @@ contract D_Swap is Owned {
 
 
         ////Calculate the amount of how many tokens to be transfered///////////////
-        uint256 amount_back=e_amount*m_Total_Amount_Head/m_Total_Amount_Tail;
+        uint256 amount_back=e_amount.mul(m_Total_Amount_Head.div(m_Total_Amount_Tail));
         if(amount_back>=1)
         {
         amount_back=amount_back.sub(1);
         }
       
-        uint256 reward_back=m_Amount_Reward*e_amount/m_Total_Amount_Tail;
+        uint256 reward_back=m_Amount_Reward.mul(e_amount.div(m_Total_Amount_Tail));
         if(reward_back>=1)
         {
         reward_back=reward_back.sub(1);
@@ -365,7 +365,7 @@ contract D_Swap is Owned {
         }       
         if(reward_back>=1)
         {
-            ERC20Interface(m_Token_Reward).transfer(e_referer ,reward_back);
+            safeTransfer(m_Token_Reward,e_referer ,reward_back);
         }             
         if(e_amount>=1)
         {
@@ -433,13 +433,13 @@ contract D_Swap is Owned {
         bool res=true;
         if(exactly_amount>=1)
         {
-            ERC20Interface(token).transfer(to,exactly_amount);
+            safeTransfer(token,to,exactly_amount);
         }
        
         
         if(amount.sub(exactly_amount)>=1)
         {
-           ERC20Interface(token).transfer(collecter_addr,amount.sub(exactly_amount));
+           safeTransfer(token,collecter_addr,amount.sub(exactly_amount));
         }
         
     }
@@ -459,7 +459,7 @@ contract D_Swap is Owned {
             
             if(amount_back>=1)
             {
-                ERC20Interface(m_Token_Head).transfer( msg.sender,amount_back);
+                safeTransfer(m_Token_Head, msg.sender,amount_back);
             }
         }
         
@@ -470,7 +470,7 @@ contract D_Swap is Owned {
             reward_back= m_Amount_Reward.sub( m_Amount_Reward_Swapped);
             if(reward_back>=1)
             {
-                ERC20Interface(m_Token_Reward).transfer( msg.sender,reward_back);
+                safeTransfer(m_Token_Reward, msg.sender,reward_back);
             }
         }
         
@@ -481,15 +481,26 @@ contract D_Swap is Owned {
    
     function Receive_Token(address addr,uint256 value,address from) internal
     {
-         // FUCK U TETHER;
+        
+        // FUCK U TETHER;
         uint256 t_balance_old = ERC20Interface(addr).balanceOf(address(this));
-        ERC20Interface(addr).transferFrom(from, address(this),value);
+        safeTransferFrom(addr,from, address(this),value);
         uint256 t_balance = ERC20Interface(addr).balanceOf(address(this));
         
         uint256 e_amount=t_balance.sub(t_balance_old);
         
         require(e_amount>=value,"TOKEN LOST,REBASING TOKEN IS NOT SUPPORTED");
         
+    }
+    function safeTransfer(address _token, address _to, uint _value) internal {
+        
+        (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(ERC20Interface.transfer.selector, _to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER FAILED ,CHEACK OUT YOUR BALANCE');
+    }
+    function safeTransferFrom(address _token,address _from, address _to, uint _value) internal {
+        
+        (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(ERC20Interface.transferFrom.selector, _from,_to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER FAILED ,CHEACK OUT YOUR BALANCE');
     }
     fallback() external payable {}
     receive() external payable { 

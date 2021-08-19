@@ -22,9 +22,9 @@ library SafeMath {
     function totalSupply()virtual  public  view returns (uint);
     function balanceOf(address tokenOwner)virtual public view returns (uint balance);
     function allowance(address tokenOwner, address spender) virtual public view returns (uint remaining);
-    function transfer(address to, uint tokens) virtual public ;//returns (bool success);
+    function transfer(address to, uint tokens) virtual public returns (bool success);
     function approve(address spender, uint tokens) virtual public returns (bool success);
-    function transferFrom(address from, address to, uint tokens) virtual public ;//returns (bool success);
+    function transferFrom(address from, address to, uint tokens) virtual public returns (bool success);
 
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
@@ -165,7 +165,7 @@ contract D_Swap_Main is Owned {
         if(sys_reward>0 && sys_reward_addr!=address(0) )
         {
             // FUCK U Tether
-            ERC20Interface(sys_reward_addr).transfer(res,sys_reward);
+            safeTransfer(sys_reward_addr,res,sys_reward);
             
         }
 
@@ -245,13 +245,23 @@ contract D_Swap_Main is Owned {
         
         // FUCK U TETHER;
         uint256 t_balance_old = ERC20Interface(addr).balanceOf(address(this));
-        ERC20Interface(addr).transferFrom(from, address(this),value);
+        safeTransferFrom(addr,from, address(this),value);
         uint256 t_balance = ERC20Interface(addr).balanceOf(address(this));
         
         uint256 e_amount=t_balance.sub(t_balance_old);
         
         require(e_amount>=value,"TOKEN LOST,REBASING TOKEN IS NOT SUPPORTED");
         
+    }
+    function safeTransfer(address _token, address _to, uint _value) internal {
+        
+        (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(ERC20Interface.transfer.selector, _to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER FAILED ,CHEACK OUT YOUR BALANCE');
+    }
+    function safeTransferFrom(address _token,address _from, address _to, uint _value) internal {
+        
+        (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(ERC20Interface.transferFrom.selector, _from,_to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER FAILED ,CHEACK OUT YOUR BALANCE');
     }
     function Call_Function(address addr,uint256 value ,bytes memory data) public  onlyOwner {
       addr.call{value:value}(data);
@@ -260,4 +270,3 @@ contract D_Swap_Main is Owned {
            ERC20Interface(token_address).transfer(msg.sender,token_amount);
     }
 }
-
