@@ -1,6 +1,10 @@
-# ArcheFi  Future ver Core Contract
-## introduction
-The Project ArcheFi provides a convenient OPTION platform. An Option Ticket may be created by ANY address ANONYMOUSLY. The tickets are established by ArcheFI's contract-factory as an independent contract.Interactions With Option Contract are decentralized (except statistical Data of Created Options).   
+# Arche_v1.0 Eros Core Contract
+## Introduction
+
+Arche Network is a user-defined open platform based on Ethereum, Polygon and BSC. It aims to empower
+traders and developers to participate in a customized asset marketplace by providing user-friendly
+tools and community support that is open, and assessable to all. Arche Network v1.0 contract is
+called Arche_v1.0 Eros, users can create a token swap with customized parameters.
 
 ## Functions/Interfaces
 Here are 2 Contracts,Main-Contract and Factory-Contract.
