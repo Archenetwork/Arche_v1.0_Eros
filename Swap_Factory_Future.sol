@@ -275,17 +275,24 @@ contract D_Swap is Owned {
 
 
         ////Calculate the amount of how many tokens to be transfered///////////////
-        uint256 amount_back=e_amount.mul(m_Total_Amount_Head.div(m_Total_Amount_Tail));
+        uint256 amount_back=e_amount.mul(m_Total_Amount_Head);
+        amount_back=amount_back.div(m_Total_Amount_Tail);
         if(amount_back>=1)
         {
-        amount_back=amount_back.sub(1);
+            amount_back=amount_back.sub(1);
         }
+        
       
-        uint256 reward_back=m_Amount_Reward.mul(e_amount.div(m_Total_Amount_Tail));
+        uint256 reward_back=m_Amount_Reward.mul(e_amount); 
+        reward_back=reward_back.div(m_Total_Amount_Tail);
+        
         if(reward_back>=1)
         {
-        reward_back=reward_back.sub(1);
+            reward_back=reward_back.sub(1);
         }
+        
+        /////////////////////////////////////////////////////////////////////////////////
+        
         
         return (amount_back,reward_back);      
  
@@ -340,14 +347,17 @@ contract D_Swap is Owned {
         
         
         ////Calculate the amount of how many tokens to be transfered///////////////
-        uint256 amount_back=e_amount.mul(m_Total_Amount_Head.div(m_Total_Amount_Tail));
+        uint256 amount_back=e_amount.mul(m_Total_Amount_Head);
+        amount_back=amount_back.div(m_Total_Amount_Tail);
         if(amount_back>=1)
         {
             amount_back=amount_back.sub(1);
         }
         m_Amount_Head_Swapped= m_Amount_Head_Swapped.add(amount_back);
       
-        uint256 reward_back=m_Amount_Reward.mul(e_amount.div(m_Total_Amount_Tail));
+        uint256 reward_back=m_Amount_Reward.mul(e_amount); 
+        reward_back=reward_back.div(m_Total_Amount_Tail);
+        
         if(reward_back>=1)
         {
             reward_back=reward_back.sub(1);
