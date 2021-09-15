@@ -17,7 +17,7 @@ Here are 2 Contracts,Main-Contract and Factory-Contract.
 |Set_Arche_Amount_Per_Deal(uint256 amount) | Set the fee (token amount) of one deal (DEPLOYMENT ONLY) |
 |Set_Token_Collecter(address addr) | Set the collector addresss, any fee will be send to the address (DEPLOYMENT ONLY)|
 |Set_Factory_Lib(address addr) | Set Address of Factory contract (DEPLOYMENT ONLY) |
-|Create(address token_head,address token_tail,address sys_reward_addr,uint256 sys_reward)  | Create an Option Ticket from Factory Contract .Caller shall invoke approval of correct Token contract before this action <ul><li> this reward token of contract address "sys_reward_addr" will be distributed to referers  </li> <li>the total amount of referers' reward is "sys_reward"</li></ul>|
+|Create(address token_head,address token_tail,address sys_reward_addr,uint256 sys_reward) returns(address) | Create an Option Ticket from Factory Contract .Caller shall invoke approval of correct Token contract before this action. This method return a sub contract address created by this contract <ul><li> this reward token of contract address "sys_reward_addr" will be distributed to referers  </li> <li>the total amount of referers' reward is "sys_reward"</li></ul>|
     
 ### Factory-Contract
 
